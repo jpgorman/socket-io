@@ -6,6 +6,84 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  
+  <style>
+	.shadow{
+		box-shadow: 1px 0 5px #CCC ,0px 1px 5px #CCC ,-1px 0px 5px #CCC;
+	}
+	canvas{
+		overflow:hidden;
+		box-shadow: 1px 0 5px #CCC ,0px 1px 5px #CCC ,-1px 0px 5px #CCC;
+	}
+	.interface{
+		overflow:hidden;
+		padding:10px;
+	}
+	.dpad, .btns{
+		width:100px;
+		height:100px;
+		position:relative;
+		text-indent:-9999em;
+		float:left;
+		margin-left:20px;
+	}
+	.up,.right,.down,.left{
+		position : absolute;
+		width:25px;
+		height:25px;
+		border:1px solid #000;
+		text-align:center;
+		cursor:pointer;
+	}
+	.up:after,.right:after,.down:after,.left:after{
+		text-indent:0;
+		display:block;
+		position : absolute;
+		width:100%;
+		height:100%;
+		left:0;
+		bottom:0;
+	}
+	.up{
+		top:0px;
+		left:35px;
+	}
+	.up:after{
+		content:"\2191";
+	}
+	.right{
+		top:35px;
+		left:auto;
+		right:0;
+	}
+	.right:after{
+		content:"\2192";
+	}
+	.down{
+		top:auto;
+		bottom:0;
+		left:35px;
+	}
+	.down:after{
+		content:"\2193";
+	}
+	.left{
+		top:35px;
+		left:0px;
+	}
+	.left:after{
+		content:"\2190";
+	}
+	.fire{
+		cursor:pointer;
+		display:block;
+		border-radius:50%;
+		width:100%;
+		height:100%;
+		position:absolute;
+		background-color:#FF0000;
+	}
+  </style>
 </head>
 <body>
 <div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
@@ -14,6 +92,9 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script src="http://localhost:8080/socket.io/socket.io.js"></script>
 <script src="/expect.js"></script>
+<script src="/canvasTools.js"></script>
 <script src="/mySocketApp.js"></script>
+<script src="/canvasController.js"></script>
+<script src="/connectionController.js"></script>
 <script src="/display.js"></script>
 </html>

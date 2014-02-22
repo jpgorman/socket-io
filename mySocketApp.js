@@ -102,6 +102,9 @@ var dataStore =  dataStore || (function(){
 
 });
 
+
+// set socket connection
+var socket = io.connect('http://localhost:8080');
 var mySocketApp = mySocketApp || (function(){
 	
 	// localise class
@@ -115,9 +118,6 @@ var mySocketApp = mySocketApp || (function(){
 	
 	var elConversation = $(".conversation");
 	var elUsers = $(".users");
-
-	// set socket connection
-	var socket = io.connect('http://localhost:8080');
 	
 	// array of event handlers
 	base.eventHandlers = {};
@@ -137,7 +137,13 @@ var mySocketApp = mySocketApp || (function(){
 		var connectionCallBack = function(){
 			if(connectionType === 'client'){
 				// call the server-side function 'adduser' and send one parameter (value of prompt)
-				socket.emit('adduser', prompt("What's your name?"));
+				
+				// update user position array
+				if(typeof base.eventHandlers['creatuserposition'] != 'undefined'){
+					var data = base.eventHandlers['creatuserposition']();
+				}
+
+				socket.emit('adduser', prompt("What's your name?"), data);
 			}
 		}
 		
@@ -150,14 +156,21 @@ var mySocketApp = mySocketApp || (function(){
 
 		// listener, whenever the server emits 'updatechat', this updates the chat body
 		socket.on('updategame', function (username, data) {
-			
+	
 			// console.log(typeof base.eventHandlers['updategame']);
 			// spawn new client data
 			if(typeof base.eventHandlers['updategame'] != 'undefined'){
 				base.eventHandlers['updategame'](username,data);
 			}
-
+			
 			elConversation.append('<b>'+username + ':</b> ' + data + '<br>');
+		});
+
+		// listener, whenever the server emits 'updateuserlist', this updates the chat body
+		socket.on('updateuserlist', function (username, data) {
+			
+			elConversation.append('<b>'+username + ':</b> ' + data + '<br>');
+					
 		});
 
 		// listener, whenever the server emits 'updateusers', this updates the username list
@@ -257,176 +270,3 @@ injector.register('data',new dataStore());
 injector.register('connection',new mySocketApp());
 injector.register('actions',myActions);
 injector.register('canvas', CanvasTool);
-
-
-// create controller
-var myCanvasContoller = injector.resolve(['canvas'], function() {
-	
-	var args = Array.prototype.slice.call(arguments, 0);
-	
-	var base = this;
-		base.gameCanvas = null;
-
-	 // create new canvas
-	var myCanvas = myCanvas || new base.canvas();
-	base.gameCanvas = base.gameCanvas || myCanvas.createCanvas({
-		id:'canvas1',
-		width:800,
-		height:800
-	});
-	
-	base.getRandomColor = function() {
-		var letters = '0123456789ABCDEF'.split('');
-		var color = '#';
-		for (var i = 0; i < 6; i++ ) {
-			color += letters[Math.round(Math.random() * 15)];
-		}
-		return color;
-	}
-	// generate random number between range
-	base.getRandomInt = function(min, max) {
-		return Math.floor(Math.random() * (max - min + 1)) + min;
-	}
-
-	// generate random respawn x,y
-	base.reSpawn = function(ctx){
-		
-		var x = base.getRandomInt(0, ctx.canvas.width);
-		var y = base.getRandomInt(0, ctx.canvas.height);
-		
-		return {
-			x:x,
-			y:y
-		}
-	}
-
-	base.clearCanvas = function(){
-		myCanvas.clearCanvas(base.gameCanvas.ctx);
-	} 
-
-	base.drawItem = function(){
-		
-		var args = Array.prototype.slice.call(arguments, 0);
-		
-		var player = args[0];
-
-		
-		// position and draw new item
-		if(typeof player.x === 'undefined' && typeof player.y === 'undefined'){
-			
-			// gnerate new position for player if one doesn't exist
-			var newPosition = base.reSpawn(base.gameCanvas.ctx);
-			player.x = newPosition.x;
-			player.y = newPosition.y;
-			player.colour = base.getRandomColor();
-		}
-		
-
-		// now draw the position of the player
-		myCanvas.drawTriangle(base.gameCanvas.ctx, {
-			fillStyle : player.colour,
-			coord:{
-				x:player.x, 
-				y:player.y
-			},
-			width:50,
-			height:50,
-			animate : true,
-			directionFactorY : 1,
-			animationFunction :function(delta){
-				var base = this;
-				return function(){
-					//console.log(base.coord.y);
-					if(base.coord.y < 100){
-						base.directionFactorY = Math.abs(base.directionFactorY) * 1;	
-					}else if(base.coord.y > 500){
-						base.directionFactorY = Math.abs(base.directionFactorY) * -1
-					}		
-					// console.log(base.directionFactorY);
-					
-					dy = Math.abs(delta) * base.directionFactorY;
-					
-					console.log(base.coord.y);
-					console.log(dy);
-					
-					base.coord.y+=dy;
-					console.log(base.coord.y);
-				}();
-			}
-		});
-
-		// return the position of the player
-		return player;
-	}
-
-	// myCanvas.loadGame(canvas.ctx);
-
-	return {
-		drawItem : base.drawItem,
-		clearCanvas : base.clearCanvas
-	}
-});
-
-// create controller
-var myConnectionContoller = injector.resolve(['data', 'connection', 'actions'], function() {
-	
-	// clients data
-	var myClientsData = {};
-
-	var args = Array.prototype.slice.call(arguments, 0);
-	var connectionType = args[0];
-
-	var base = this;
-
-	// create entities node to store animations for each canvas			
-	var data = base.data.getData(myClientsData);
-		data.entities = new Array();
-	
-	// create singleton of canvas controller
-	var canvasContoller = myCanvasContoller();
-
-	// create event handle for new user connection
-	base.connection.setEventHandler('updategame',function(username,action){
-		
-		if(typeof data.entities[username] === 'undefined'){
-			data.entities.push(username);
-			// set default actions
-			data.entities[username] = new base.actions().setActions();
-		}
-		
-		if(action === 'disconnected'){
-			delete data.entities[username];
-		}
-		
-		if(typeof data.entities[username] !== 'undefined'){
-
-			// get current actions
-			var userActions = data.entities[username];
-			// get new new action
-				userActions = new base.actions().setActions(action);
-			// update user actions
-			data.entities[username] = userActions;
-		};
-		
-		
-		// clear canvas
-		canvasContoller.clearCanvas();
-
-		//now iterate over all entries and redraw canvas
-		for(username in data.entities){
-			
-			
-
-			console.log(username);
-			// update canvas and user actions and user position
-			data.entities[username] = canvasContoller.drawItem(data.entities[username]);
-		}
-
-
-	});
-	
-	// start connection
-	base.connection.connect(connectionType);
-
-	
- });

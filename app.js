@@ -29,15 +29,20 @@ io.sockets.on('connection', function (socket) {
 	});
 
 	// when the client emits 'adduser', this listens and executes
-	socket.on('adduser', function(username){
+	socket.on('adduser', function(username, data){
 		// we store the username in the socket session for this client
 		socket.username = username;
 		// add the client's username to the global list
 		usernames[username] = username;
-		// echo to client they've connected
-		socket.emit('updategame', username, 'you have connected');
-		// echo globally (all clients) that a person has connected
-		socket.broadcast.emit('updategame', username, username + ' has connected');
+		// echo to client only they've connected
+		socket.emit('updategame', username, data);
+		
+		// echo globally (all clients) other that a person has connected
+		socket.broadcast.emit('updategame', username, data);
+
+		// echo globally (all clients) other that a person has connected
+		socket.broadcast.emit('updateuserlist', username, username + ' has connected');
+
 		// update the list of users in chat, client-side
 		io.sockets.emit('updateusers', usernames);
 	});

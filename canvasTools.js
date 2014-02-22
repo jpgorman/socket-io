@@ -236,7 +236,7 @@
 				data = base.getData(ctx.canvas);
 				data.animates.push(shape);
 				
-				console.log(data);
+				
 				shape.animate = false; // it won't get Qued again
 			}
 			
