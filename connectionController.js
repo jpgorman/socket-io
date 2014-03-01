@@ -5,7 +5,7 @@ var myConnectionContoller = injector.resolve(['data', 'connection', 'actions'], 
 	
 	// clients data
 	var myClientsData = {};
-
+	var userMultiplyer = 15;
 	var args = Array.prototype.slice.call(arguments, 0);
 	var connectionType = args[0];
 
@@ -18,6 +18,34 @@ var myConnectionContoller = injector.resolve(['data', 'connection', 'actions'], 
 	// create singleton of canvas controller
 	var canvasContoller = new myCanvasContoller();
 	
+	// inerpret the player actions
+	base.interpretActions = function(){
+		
+		//now iterate over all entries and redraw canvas
+		for(username in data.entities){
+											
+			// interate over actions
+			for(action in data.entities[username].actions){
+				
+
+				// use currently set action to udpate user position
+				if(data.entities[username].actions[action]===1){
+					// unset action as it's being processed
+					data.entities[username].actions[action] = 0;
+
+					// update position based on action
+					(action == 'up')?data.entities[username].position.y -= userMultiplyer : null;
+					(action == 'right')?data.entities[username].position.x += userMultiplyer : null;
+					(action == 'down')?data.entities[username].position.y += userMultiplyer : null;
+					(action == 'left')?data.entities[username].position.x -= userMultiplyer : null;
+					// (action == 'fire')?data.entities[username].position.x ++ : null;
+				}
+			}
+
+		}
+
+	}
+
 	// redraw the canvas
 	base.drawcanvas = function(){
 			
@@ -40,9 +68,9 @@ var myConnectionContoller = injector.resolve(['data', 'connection', 'actions'], 
 		return canvasContoller.drawItem({});
 	});
 
-	// create event handle for new user connection
+	// create event handle to update game state
 	base.connection.setEventHandler('updategame',function(username,userData){
-		console.log(userData);
+		
 		// disconnect user
 		if(userData === 'disconnected'){
 			delete data.entities[username];
@@ -65,11 +93,13 @@ var myConnectionContoller = injector.resolve(['data', 'connection', 'actions'], 
 			// update user actions
 			data.entities[username].actions = new base.actions().setActions(userData);
 		};
-
+		
+		// update the player based on actions
+		base.interpretActions();
 		
 		// emit update position to clients except sender
 		// socket.emit('sendposition',username,data.entities[username]);
-		base.drawcanvas();
+		// base.drawcanvas();
 
 	});
 	

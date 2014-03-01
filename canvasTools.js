@@ -411,11 +411,11 @@
 					// envoke fn with call
 					base[fn].apply(this,[context, animation]);
 				}
-					
+					/*
 				if(cnt==20){
 					console.log('cancelled');
 					//window.cancelAnimationFrame(frameId);
-				}
+				}*/
 				
 	
 				lastFrame = thisFrame;

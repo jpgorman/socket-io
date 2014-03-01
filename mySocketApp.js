@@ -1,3 +1,6 @@
+var eventDown = ($('html.no-touch')) ? 'mousedown' : 'touchstart';
+var eventUp = ($('html.no-touch')) ? 'mouseup' : 'touchend';
+
 var injector = {
 	/**
 	 * @property {Object} dependencies object vairable into which dependancies will be stored
@@ -182,14 +185,45 @@ var mySocketApp = mySocketApp || (function(){
 			});
 		});
 		
+		// event action function
+		var eventStillOn = false;
+		var clickInterval = null;
+		var actionEvent = function(action){
+			
+			if(!eventStillOn){
+			//	console.log(mouseStillDown);
+				clearInterval(clickInterval);
+				return false;
+			}
+			// emit the sendchat event
+			// socket.emit('sendchat', action);
+			
+			// if event is true then fire
+			if(eventStillOn){
+				
+				clickInterval = setInterval(function(){
+					socket.emit('sendchat', action);
+				}, 50);
+
+				return true;
+			}
+		}
 
 		// bind game controller events
 		$('div.dpad span, div.btns span').each(function( index ) {
-
-			$(this).off().on('click',function(){
+			
+			// some chaining
+			$(this).off().on(eventDown,function(){
 				
-				socket.emit('sendchat', $(this).data('action'));	
+				eventStillOn = true;
+				actionEvent($(this).data('action'));
+
+			}).on(eventUp,function(){
+				eventStillOn = false;
+				actionEvent();
 			});
+			
+
 		});
 
 		// when the client clicks SEND

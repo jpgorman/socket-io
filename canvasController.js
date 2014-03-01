@@ -73,7 +73,7 @@ var myCanvasContoller = injector.resolve(['canvas'], function() {
 			},
 			width:50,
 			height:50,
-			animate : false,
+			animate : true,
 			directionFactorY : 1,
 			animationFunction :function(delta){
 				var base = this;
@@ -102,7 +102,7 @@ var myCanvasContoller = injector.resolve(['canvas'], function() {
 		return player;
 	}
 
-	// myCanvas.loadGame(canvas.ctx);
+	// myCanvas.loadGame(base.gameCanvas.ctx);
 
 	return {
 		drawItem : base.drawItem,
