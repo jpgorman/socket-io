@@ -99,7 +99,7 @@ var myConnectionContoller = injector.resolve(['data', 'connection', 'actions'], 
 		
 		// emit update position to clients except sender
 		// socket.emit('sendposition',username,data.entities[username]);
-		// base.drawcanvas();
+		base.drawcanvas();
 
 	});
 	

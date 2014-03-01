@@ -1,5 +1,5 @@
 var eventDown = ($('html.no-touch')) ? 'mousedown' : 'touchstart';
-var eventUp = ($('html.no-touch')) ? 'mouseup' : 'touchend';
+var eventUp = ($('html.no-touch')) ? 'mouseup mouseout' : 'touchend';
 
 var injector = {
 	/**
@@ -212,7 +212,21 @@ var mySocketApp = mySocketApp || (function(){
 		// bind game controller events
 		$('div.dpad span, div.btns span').each(function( index ) {
 			
+			var el = $(this)[0];
+
 			// some chaining
+			el.addEventListener('touchstart', function(event) {
+			
+				eventStillOn = true;
+				actionEvent($(this).data('action'));
+			});
+
+			el.addEventListener('touchend', function(event) {
+				eventStillOn = false;
+				actionEvent();
+			});
+
+
 			$(this).off().on(eventDown,function(){
 				
 				eventStillOn = true;
